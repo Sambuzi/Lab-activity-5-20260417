@@ -103,12 +103,23 @@ population = [create_individual() for _ in range(POP_SIZE)]
 # REPLACEMENT
 for gen in range(GENERATIONS):
     fitness_values = [fitness(i) for i in population]
-    new_population = []
-    for _ in range(POP_SIZE):
+    print_stats(population, fitness_values)
+
+    # Elitism: keep the best ELITE_SIZE individuals from current population
+    elite_indices = sorted(
+        range(POP_SIZE),
+        key=lambda i: fitness_values[i],
+        reverse=True
+    )[:ELITE_SIZE]
+    elite_fitnesses = [round(fitness_values[i], 4) for i in elite_indices]
+    print("Elite fitnesses:", elite_fitnesses)
+    elites = [population[i][:] for i in elite_indices]
+
+    new_population = elites
+    for _ in range(POP_SIZE - ELITE_SIZE):
         parent1 = select_proportional(population,fitness_values)
         parent2 = select_proportional(population,fitness_values)
         child = crossover(parent1, parent2)
         child = mutate(child)
         new_population.append(child)
     population = new_population
-    print_stats(population,fitness_values)
