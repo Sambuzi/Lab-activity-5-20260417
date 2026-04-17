@@ -53,7 +53,7 @@ Per ogni generazione vengono stampati:
 - Best solution
 - Elite fitnesses
 
-## Note su algoritmo genetico
+## Note su algoritmo genetico ga.py
 
 Parametri principali in ga.py:
 
