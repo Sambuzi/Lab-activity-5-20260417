@@ -1,0 +1,12 @@
+1.Ho generato una soluzione casuale composta da 50 pesi reali nell’intervallo [-1,1], coerentemente con la rappresentazione del genoma usata in ga.py.
+Ho inserito il genoma nel file test-controller-nn.lua e ho eseguito test-controller-nn.argos per osservare il comportamento del robot nella GUI.
+Il comportamento osservato non è risultato efficace: il robot tende a muoversi in modo irregolare / casuale / poco diretto verso la sorgente luminosa. Questo è atteso, perché i pesi della rete non sono ancora stati ottimizzati dall’algoritmo genetico.
+
+2.Eseguendo l'algortimo genetico si osserva un miglioramento progressimo dela fitness.Dopo alcune generazioni si ottengono valori intorno a 0.97 , indicando che il robot riesce
+a raggiungere la sorgente luminosa.
+
+3.attraverso l'e-val l'individuo viene valutato più volte.Un valore maggiore riduce il rumore
+nella valutazione della fitness,rendendo il processo evolutivo piu stabile con e-val minore invece la valuzione è più veloce ma meno affidabile.
+
+4.Utilizzando il minimo invece della media,l'algortimo diventa conservativo, premiando individui con prestazioni consistenti anche nel cas opeggiore.
+Tuttavia,l'evoluzione risulta più lenta.
