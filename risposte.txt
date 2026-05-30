@@ -1,32 +1,67 @@
-1.Ho generato una soluzione casuale composta da 50 pesi reali nell’intervallo [-1,1], coerentemente con la rappresentazione del genoma usata in ga.py.
-Ho inserito il genoma nel file test-controller-nn.lua e ho eseguito test-controller-nn.argos per osservare il comportamento del robot nella GUI.
-Il comportamento osservato non è risultato efficace: il robot tende a muoversi in modo irregolare / casuale / poco diretto verso la sorgente luminosa. Questo è atteso, perché i pesi della rete non sono ancora stati ottimizzati dall’algoritmo genetico.
+1. Ho analizzato il codice osservando il ruolo dei file principali. ga.py implementa l'algoritmo genetico, genera i genomi, li passa ad ARGoS tramite la variabile d'ambiente GENOME e legge la fitness stampata dal controller. nn.lua implementa la rete neurale, mentre controller-nn.lua legge il genoma, costruisce la rete e usa i sensori di luce per calcolare le velocità delle ruote.
 
-2.Eseguendo l'algortimo genetico si osserva un miglioramento progressimo dela fitness.Dopo alcune generazioni si ottengono valori intorno a 0.97 , indicando che il robot riesce
-a raggiungere la sorgente luminosa.
+2. Ho generato una soluzione casuale composta da 50 pesi reali nell'intervallo [-1, 1], coerentemente con la rappresentazione del genoma usata in ga.py. Inserendo il genoma in test-controller-nn.lua ed eseguendo test-controller-nn.argos, il comportamento osservato non è risultato particolarmente efficace: il robot tende a muoversi in modo irregolare o poco diretto verso la sorgente luminosa. Questo è atteso, perché i pesi della rete non sono ancora ottimizzati.
 
-3.La mutazione è stata implementata come rumore gaussiano con media 0 e deviazione standard 1. Ogni gene viene mutato con probabilità MUTATION_RATE, quindi con 50 geni e MUTATION_RATE = 0.1 vengono mutati in media 5 geni per individuo.
+3. La mutazione è stata implementata come rumore gaussiano con media 0 e deviazione standard MUTATION_INTENSITY = 1. Ogni gene viene mutato con probabilità MUTATION_RATE = 0.1. Con GENOME_LENGTH = 50, in media vengono quindi mutati 50 * 0.1 = 5 geni per individuo.
 
-4.Attraverso n_eval l'individuo viene valutato più volte.Un valore maggiore riduce il rumore
-nella valutazione della fitness,rendendo il processo evolutivo piu stabile con e-val minore invece la valuzione è più veloce ma meno affidabile.
-Se n_eval = 1 il programma è più veloce, ma la fitness è meno affidabile perché dipende da una sola simulazione.
+4. Eseguendo l'algoritmo genetico si osserva un miglioramento progressivo della fitness. In alcune esecuzioni si raggiungono valori vicini o superiori a 0.9, indicando che il robot riesce ad avvicinarsi alla sorgente luminosa.
 
-5.Utilizzando il minimo invece della media,l'algortimo diventa conservativo, premiando individui con prestazioni consistenti anche nel cas opeggiore.
-Tuttavia,l'evoluzione risulta più lenta.
+5. Il parametro N_EVAL indica quante volte lo stesso individuo viene valutato in simulazione. Serve a ridurre l'effetto del rumore e delle condizioni iniziali casuali. Se N_EVAL = 1, l'esecuzione è più veloce, ma la fitness è meno affidabile perché dipende da una sola simulazione.
 
-6.Per confrontare CX_RATE in {0, 0.5, 1} ho usato la configurazione richiesta:
-GENOME_LENGTH = 50, POP_SIZE = 10, GENERATIONS = 5, MUTATION_RATE = 0.1, MUTATION_INTENSITY = 1, N_EVAL = 3.
-Per ogni valore di CX_RATE bisogna eseguire 5 run, annotare la migliore fitness finale di ogni run e calcolare media e mediana.
+6. Usando N_EVAL = 3 e il minimo al posto della media, la valutazione diventa più conservativa: un individuo viene premiato solo se funziona bene anche nel caso peggiore tra le tre simulazioni. Questo può favorire soluzioni più robuste, ma può anche rallentare l'evoluzione perché la fitness assegnata è più severa.
 
-7.L'elitismo è stato implementato mantenendo i migliori ELITE_SIZE individui della generazione corrente nella generazione successiva. Nel codice questo comportamento è controllato da USE_ELITISM.
+7. Confronto CX_RATE in {0, 0.5, 1}.
+Configurazione usata: GENOME_LENGTH = 50, POP_SIZE = 10, GENERATIONS = 5, MUTATION_RATE = 0.1, MUTATION_INTENSITY = 1, N_EVAL = 3, senza elitismo.
 
-8.Per confrontare replacement ed elitismo bisogna usare:
-CX_RATE = 0, POP_SIZE = 10, ELITE_SIZE = 5, GENERATIONS = 5, MUTATION_RATE = 0.1, MUTATION_INTENSITY = 1, N_EVAL = 3.
-Con USE_ELITISM = False si ottiene replacement puro; con USE_ELITISM = True si usa elitismo. Anche qui si fanno 5 repliche e si confrontano media e mediana.
+CX_RATE = 0
+Fitness finali: 0.7737, 0.5467, 0.9039, 0.9620, 0.6914
+Media: 0.7756
+Mediana: 0.7737
 
-9.La tournament selection è stata implementata scegliendo 2 individui casuali e restituendo quello con fitness migliore.
+CX_RATE = 0.5
+Fitness finali: 0.9525, 0.8208, 0.4392, 0.7052, 0.5063
+Media: 0.6848
+Mediana: 0.7052
 
-10.Per confrontare roulette wheel e tournament selection si usa la variabile SELECTION.
-Con SELECTION = "roulette" si usa la selezione proporzionale; con SELECTION = "tournament" si usa il torneo. Si mantengono gli altri parametri uguali e si confrontano media e mediana su 5 run.
+CX_RATE = 1
+Fitness finali: 0.9433, 0.5498, 0.8569, 0.5425, 0.6710
+Media: 0.7127
+Mediana: 0.6710
 
-11.Le conclusioni sperimentali sono qualitative, perché 5 repliche sono poche. In generale l'elitismo tende a conservare meglio le buone soluzioni, mentre la tournament selection può aumentare la pressione selettiva rispetto alla roulette wheel. Per un confronto più solido servirebbero più repliche, boxplot e test statistici.
+In queste 5 repliche il caso migliore per media e mediana è risultato CX_RATE = 0. Tuttavia la variabilità è alta, quindi il risultato va interpretato come indicativo.
+
+8. L'elitismo è stato implementato mantenendo i migliori ELITE_SIZE individui della generazione corrente nella generazione successiva. Nel codice questo comportamento è controllato da USE_ELITISM.
+
+9. Confronto replacement vs elitismo.
+Configurazione usata: GENOME_LENGTH = 50, POP_SIZE = 10, ELITE_SIZE = 5, GENERATIONS = 5, MUTATION_RATE = 0.1, CX_RATE = 0, MUTATION_INTENSITY = 1, N_EVAL = 3.
+
+Replacement, cioè USE_ELITISM = False
+Fitness finali: 0.6921, 0.5139, 0.8730, 0.9515, 0.9633
+Media: 0.7987
+Mediana: 0.8730
+
+Elitismo, cioè USE_ELITISM = True
+Fitness finali: 0.8819, 0.7922, 0.9113, 0.5576, 0.8218
+Media: 0.7929
+Mediana: 0.8218
+
+In queste repliche replacement ha ottenuto una media e una mediana leggermente superiori. La differenza è però piccola e le repliche sono poche, quindi non è possibile trarre una conclusione statistica forte.
+
+10. La tournament selection è stata implementata scegliendo 2 individui casuali dalla popolazione e restituendo quello con fitness maggiore. Nel codice la selezione usata è controllata dalla variabile SELECTION, che può valere "roulette" oppure "tournament".
+
+11. Confronto roulette wheel selection vs tournament selection.
+Configurazione usata: GENOME_LENGTH = 50, POP_SIZE = 10, ELITE_SIZE = 5, GENERATIONS = 5, MUTATION_RATE = 0.1, CX_RATE = 0, MUTATION_INTENSITY = 1, N_EVAL = 3, USE_ELITISM = True.
+
+Roulette wheel selection
+Fitness finali: 0.7550, 0.8913, 0.6227, 0.9510, 0.6294
+Media: 0.7699
+Mediana: 0.7550
+
+Tournament selection
+Fitness finali: 0.8361, 0.6414, 0.8999, 0.6581, 0.8566
+Media: 0.7784
+Mediana: 0.8361
+
+In queste repliche tournament selection ha ottenuto media e mediana leggermente superiori rispetto alla roulette wheel selection. Questo suggerisce che una pressione selettiva maggiore può aiutare, ma anche in questo caso il numero di repliche è troppo basso per una conclusione definitiva.
+
+Conclusioni generali. Gli esperimenti mostrano che l'algoritmo genetico riesce a produrre comportamenti di fototassi con fitness spesso alta. I confronti sono però ingenui, perché usano solo 5 repliche e non includono test statistici. Per un'analisi più robusta servirebbero più repliche, boxplot e test statistici. Possibili miglioramenti includono aumentare il numero di generazioni, usare più repliche per la valutazione, modificare il tasso di mutazione nel tempo, oppure estendere la fitness per includere anche collision avoidance.
