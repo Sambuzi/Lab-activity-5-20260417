@@ -117,8 +117,8 @@ for gen in range(GENERATIONS):
 
     new_population = elites
     for _ in range(POP_SIZE - ELITE_SIZE):
-        parent1 = select_proportional(population,fitness_values)
-        parent2 = select_proportional(population,fitness_values)
+        parent1 = select_tournament(population,fitness_values)
+        parent2 = select_tournament(population,fitness_values)
         child = crossover(parent1, parent2)
         child = mutate(child)
         new_population.append(child)
