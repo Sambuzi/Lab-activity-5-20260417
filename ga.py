@@ -5,13 +5,16 @@ import os
 import subprocess
 
 GENOME_LENGTH = 50
-POP_SIZE = 20
+POP_SIZE = 10
 ELITE_SIZE = 5
-GENERATIONS = 10
+GENERATIONS = 5
 MUTATION_RATE = 0.1 # prob of mutating each gene
-CX_RATE = 1 # prob of applying crossover
+CX_RATE = 0 # prob of applying crossover
 MUTATION_INTENSITY = 1 # stddev of a Gaussian distribution with mean 0
 N_EVAL = 3
+FITNESS_AGGREGATION = "mean" # use "mean" or "min"
+USE_ELITISM = True
+SELECTION = "tournament" # use "roulette" or "tournament"
 
 # Create random individual
 def create_individual():
@@ -33,8 +36,10 @@ def fitness(individual):
                 fitness = str(line.strip().split(":")[1])
                 fitness = float(fitness.replace(",", "."))
         fvalue.append(fitness)
-    fitness = statistics.mean(fvalue)
-    #fitness = min(fvalue)
+    if FITNESS_AGGREGATION == "min":
+        fitness = min(fvalue)
+    else:
+        fitness = statistics.mean(fvalue)
     return fitness
 
 
@@ -69,7 +74,8 @@ def crossover(parent1, parent2):
             for x,y in zip(parent1,parent2)
         ]
     else:
-        return parent1 if random.random() <= 0.5 else parent2
+        parent = parent1 if random.random() <= 0.5 else parent2
+        return parent[:]
 
 
 # Mutation: Gaussian noise
@@ -95,6 +101,12 @@ def print_stats(pop,fv):
     print("Best solution:", best)
     print("\n")
 
+
+def select_parent(population, fitness_values):
+    if SELECTION == "tournament":
+        return select_tournament(population, fitness_values)
+    return select_proportional(population, fitness_values)
+
 # Main GA loop
 population = [create_individual() for _ in range(POP_SIZE)]
 
@@ -105,20 +117,22 @@ for gen in range(GENERATIONS):
     fitness_values = [fitness(i) for i in population]
     print_stats(population, fitness_values)
 
-    # Elitism: keep the best ELITE_SIZE individuals from current population
-    elite_indices = sorted(
-        range(POP_SIZE),
-        key=lambda i: fitness_values[i],
-        reverse=True
-    )[:ELITE_SIZE]
-    elite_fitnesses = [round(fitness_values[i], 4) for i in elite_indices]
-    print("Elite fitnesses:", elite_fitnesses)
-    elites = [population[i][:] for i in elite_indices]
+    elites = []
+    if USE_ELITISM:
+        # Elitism: keep the best ELITE_SIZE individuals from current population
+        elite_indices = sorted(
+            range(POP_SIZE),
+            key=lambda i: fitness_values[i],
+            reverse=True
+        )[:ELITE_SIZE]
+        elite_fitnesses = [round(fitness_values[i], 4) for i in elite_indices]
+        print("Elite fitnesses:", elite_fitnesses)
+        elites = [population[i][:] for i in elite_indices]
 
     new_population = elites
-    for _ in range(POP_SIZE - ELITE_SIZE):
-        parent1 = select_tournament(population,fitness_values)
-        parent2 = select_tournament(population,fitness_values)
+    for _ in range(POP_SIZE - len(elites)):
+        parent1 = select_parent(population,fitness_values)
+        parent2 = select_parent(population,fitness_values)
         child = crossover(parent1, parent2)
         child = mutate(child)
         new_population.append(child)

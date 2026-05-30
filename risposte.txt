@@ -5,8 +5,28 @@ Il comportamento osservato non è risultato efficace: il robot tende a muoversi 
 2.Eseguendo l'algortimo genetico si osserva un miglioramento progressimo dela fitness.Dopo alcune generazioni si ottengono valori intorno a 0.97 , indicando che il robot riesce
 a raggiungere la sorgente luminosa.
 
-3.attraverso l'e-val l'individuo viene valutato più volte.Un valore maggiore riduce il rumore
-nella valutazione della fitness,rendendo il processo evolutivo piu stabile con e-val minore invece la valuzione è più veloce ma meno affidabile.
+3.La mutazione è stata implementata come rumore gaussiano con media 0 e deviazione standard 1. Ogni gene viene mutato con probabilità MUTATION_RATE, quindi con 50 geni e MUTATION_RATE = 0.1 vengono mutati in media 5 geni per individuo.
 
-4.Utilizzando il minimo invece della media,l'algortimo diventa conservativo, premiando individui con prestazioni consistenti anche nel cas opeggiore.
+4.Attraverso n_eval l'individuo viene valutato più volte.Un valore maggiore riduce il rumore
+nella valutazione della fitness,rendendo il processo evolutivo piu stabile con e-val minore invece la valuzione è più veloce ma meno affidabile.
+Se n_eval = 1 il programma è più veloce, ma la fitness è meno affidabile perché dipende da una sola simulazione.
+
+5.Utilizzando il minimo invece della media,l'algortimo diventa conservativo, premiando individui con prestazioni consistenti anche nel cas opeggiore.
 Tuttavia,l'evoluzione risulta più lenta.
+
+6.Per confrontare CX_RATE in {0, 0.5, 1} ho usato la configurazione richiesta:
+GENOME_LENGTH = 50, POP_SIZE = 10, GENERATIONS = 5, MUTATION_RATE = 0.1, MUTATION_INTENSITY = 1, N_EVAL = 3.
+Per ogni valore di CX_RATE bisogna eseguire 5 run, annotare la migliore fitness finale di ogni run e calcolare media e mediana.
+
+7.L'elitismo è stato implementato mantenendo i migliori ELITE_SIZE individui della generazione corrente nella generazione successiva. Nel codice questo comportamento è controllato da USE_ELITISM.
+
+8.Per confrontare replacement ed elitismo bisogna usare:
+CX_RATE = 0, POP_SIZE = 10, ELITE_SIZE = 5, GENERATIONS = 5, MUTATION_RATE = 0.1, MUTATION_INTENSITY = 1, N_EVAL = 3.
+Con USE_ELITISM = False si ottiene replacement puro; con USE_ELITISM = True si usa elitismo. Anche qui si fanno 5 repliche e si confrontano media e mediana.
+
+9.La tournament selection è stata implementata scegliendo 2 individui casuali e restituendo quello con fitness migliore.
+
+10.Per confrontare roulette wheel e tournament selection si usa la variabile SELECTION.
+Con SELECTION = "roulette" si usa la selezione proporzionale; con SELECTION = "tournament" si usa il torneo. Si mantengono gli altri parametri uguali e si confrontano media e mediana su 5 run.
+
+11.Le conclusioni sperimentali sono qualitative, perché 5 repliche sono poche. In generale l'elitismo tende a conservare meglio le buone soluzioni, mentre la tournament selection può aumentare la pressione selettiva rispetto alla roulette wheel. Per un confronto più solido servirebbero più repliche, boxplot e test statistici.
