@@ -1,0 +1,19 @@
+{
+    "Lua.diagnostics.globals": [
+        "robot",
+        "init",
+        "step",
+        "destroy",
+        "dmax",
+        "genome_param",
+        "genome",
+        "output",
+        "left_v",
+        "right_v",
+        "x",
+        "d",
+        "fitness",
+        "y",
+        "net"
+    ]
+}
